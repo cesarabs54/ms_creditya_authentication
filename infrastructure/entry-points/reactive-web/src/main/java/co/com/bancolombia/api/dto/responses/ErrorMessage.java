@@ -1,6 +1,7 @@
 package co.com.bancolombia.api.dto.responses;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+
 import java.time.LocalDateTime;
 
 @Schema(description = "Detalle del error en la respuesta")

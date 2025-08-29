@@ -1,12 +1,9 @@
 package co.com.bancolombia.model.entities;
 
 import co.com.bancolombia.model.enums.ERole;
+import lombok.*;
+
 import java.util.UUID;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 
 @Getter
@@ -15,6 +12,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Role {
-    private UUID id;
+    private UUID roleId;
     private ERole name;
+    private String description;
 }

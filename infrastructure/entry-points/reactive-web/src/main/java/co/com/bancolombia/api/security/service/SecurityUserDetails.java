@@ -1,10 +1,6 @@
 package co.com.bancolombia.api.security.service;
 
 import co.com.bancolombia.model.entities.User;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
@@ -12,14 +8,26 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import reactor.core.publisher.Mono;
 
+import java.math.BigDecimal;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
+
 @Getter
 @AllArgsConstructor
 public class SecurityUserDetails implements UserDetails {
 
-    private final String id;
-    private final String username;
+    private final String userId;
+    private final String documentIdentification;
+    private final String firstName;
+    private final String lastName;
+    private final String birthDate;
+    private final String direction;
+    private final String telephoneNumber;
     private final String email;
     private final String password;
+    private final Long baseSalary;
     private final Collection<? extends GrantedAuthority> authorities;
 
     public static Mono<SecurityUserDetails> build(User user) {
@@ -30,9 +38,15 @@ public class SecurityUserDetails implements UserDetails {
 
             return new SecurityUserDetails(
                     user.getUserId().toString(),
-                    user.getUsername(),
+                    user.getDocumentIdentification(),
+                    user.getFirstName(),
+                    user.getLastName(),
+                    user.getBirthDate().toString(),
+                    user.getDirection(),
+                    user.getTelephoneNumber(),
                     user.getEmail(),
                     user.getPassword(),
+                    user.getBaseSalary(),
                     authorities
             );
         });
@@ -47,11 +61,16 @@ public class SecurityUserDetails implements UserDetails {
         if (!(o instanceof SecurityUserDetails that)) {
             return false;
         }
-        return Objects.equals(id, that.id);
+        return Objects.equals(userId, that.userId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id);
+        return Objects.hash(userId);
+    }
+
+    @Override
+    public String getUsername() {
+        return "";
     }
 }
