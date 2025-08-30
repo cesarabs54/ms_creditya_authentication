@@ -1,5 +1,6 @@
 package co.com.bancolombia.api.dto.requests;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
 
@@ -10,18 +11,22 @@ public record SignUpRequest(
 
         @NotBlank
         @Schema(description = "Documento de identificación", example = "88111111")
+        @JsonProperty("documentIdentification")
         String documentIdentification,
 
         @NotBlank
         @Schema(description = "Nombre del usuario", example = "Cesar")
+        @JsonProperty("firstName")
         String firstName,
 
         @NotBlank
         @Schema(description = "Apellido del usuario", example = "Alfonso")
+        @JsonProperty("lastName")
         String lastName,
 
         @NotBlank
         @Schema(description = "Fecha de nacimiento", example = "10/11/1980")
+        @JsonProperty("birthDate")
         String birthDate,
 
         @NotBlank
@@ -30,6 +35,7 @@ public record SignUpRequest(
 
         @NotBlank
         @Schema(description = "Número de teléfono", example = "3001234567")
+        @JsonProperty("telephoneNumber")
         String telephoneNumber,
 
         @NotBlank

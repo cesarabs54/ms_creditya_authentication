@@ -51,26 +51,28 @@ public class GlobalErrorHandler extends AbstractErrorWebExceptionHandler {
         HttpStatus status;
         String message;
 
-        if (e instanceof MethodArgumentTypeMismatchException matme) {
-            status = HttpStatus.BAD_REQUEST;
-            message = "Tipo de argumento inválido: " + matme.getName();
-
-        } else if (e instanceof ConstraintViolationException cve) {
-            status = HttpStatus.BAD_REQUEST;
-            message = cve.getConstraintViolations().stream()
-                    .map(v -> v.getPropertyPath() + ": " + v.getMessage())
-                    .collect(Collectors.joining("; "));
-
-        } else if (e instanceof BindException be) {
-            status = HttpStatus.BAD_REQUEST;
-            message = be.getBindingResult().getFieldErrors().stream()
-                    .map(err -> err.getField() + ": " + err.getDefaultMessage())
-                    .collect(Collectors.joining("; "));
-
-        } else {
-            status = HttpStatus.INTERNAL_SERVER_ERROR;
-            message = "Error interno del servidor: " + (e.getMessage() != null ? e.getMessage()
-                    : "Sin detalle");
+        switch (e) {
+            case MethodArgumentTypeMismatchException matme -> {
+                status = HttpStatus.BAD_REQUEST;
+                message = "Tipo de argumento inválido: " + matme.getName();
+            }
+            case ConstraintViolationException cve -> {
+                status = HttpStatus.BAD_REQUEST;
+                message = cve.getConstraintViolations().stream()
+                        .map(v -> v.getPropertyPath() + ": " + v.getMessage())
+                        .collect(Collectors.joining("; "));
+            }
+            case BindException be -> {
+                status = HttpStatus.BAD_REQUEST;
+                message = be.getBindingResult().getFieldErrors().stream()
+                        .map(err -> err.getField() + ": " + err.getDefaultMessage())
+                        .collect(Collectors.joining("; "));
+            }
+            default -> {
+                status = HttpStatus.INTERNAL_SERVER_ERROR;
+                message = "Error interno del servidor: " + (e.getMessage() != null ? e.getMessage()
+                        : "Sin detalle");
+            }
         }
 
         ErrorMessage body = new ErrorMessage(
