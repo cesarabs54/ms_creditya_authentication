@@ -15,4 +15,7 @@ public class Role {
     private UUID roleId;
     private ERole name;
     private String description;
+
+    public Role(ERole eRole) {
+    }
 }

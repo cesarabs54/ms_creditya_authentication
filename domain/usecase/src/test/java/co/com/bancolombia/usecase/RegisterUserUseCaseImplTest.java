@@ -4,6 +4,8 @@ import co.com.bancolombia.model.dtos.RegisterRequest;
 import co.com.bancolombia.model.entities.Role;
 import co.com.bancolombia.model.entities.User;
 import co.com.bancolombia.model.enums.ERole;
+import co.com.bancolombia.model.exceptions.DuplicateResourceException;
+import co.com.bancolombia.model.exceptions.ResourceNotFoundException;
 import co.com.bancolombia.model.gateways.PasswordEncoderService;
 import co.com.bancolombia.model.gateways.RoleRepository;
 import co.com.bancolombia.model.gateways.UserRepository;
@@ -22,6 +24,7 @@ import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
 
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -42,7 +45,7 @@ class RegisterUserUseCaseImplTest {
         useCase = new RegisterUserUseCaseImpl(userRepository, roleRepository, passwordEncoderService);
     }
 
-    private RegisterRequest buildRequest(Set<String> roles) {
+    private RegisterRequest construirSolicitud(Set<String> roles) {
         return new RegisterRequest(
                 "1002003000",
                 "Juan",
@@ -58,61 +61,64 @@ class RegisterUserUseCaseImplTest {
     }
 
     @Test
-    @DisplayName("Registra usuario sin roles (asigna ROLE_APPLICANT por defecto)")
-    void registerWithoutRoles_assignsDefaultRole() {
-        RegisterRequest request = buildRequest(null);
+    @DisplayName("Registra usuario sin roles → asigna ROLE_APPLICANT por defecto")
+    void registraSinRoles_asignaRolPorDefecto() {
+        // Arrange
+        RegisterRequest solicitud = construirSolicitud(null);
         Role applicant = Role.builder().name(ERole.ROLE_APPLICANT).description("Default").build();
 
-        when(userRepository.existsByEmail(request.email())).thenReturn(Mono.just(false));
-        when(userRepository.existsByDocumentIdentification(request.documentIdentification())).thenReturn(Mono.just(false));
+        when(userRepository.existsByEmail(solicitud.email())).thenReturn(Mono.just(false));
+        when(userRepository.existsByDocumentIdentification(solicitud.documentIdentification())).thenReturn(Mono.just(false));
         when(roleRepository.findByName(ERole.ROLE_APPLICANT)).thenReturn(Mono.just(applicant));
-        when(passwordEncoderService.encode(request.password())).thenReturn(Mono.just("encoded-pass"));
-        // capturamos el usuario que se persiste
+        when(passwordEncoderService.encode(solicitud.password())).thenReturn(Mono.just("encoded-pass"));
+
         ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
         when(userRepository.save(userCaptor.capture())).thenAnswer(inv -> Mono.just(inv.getArgument(0)));
 
-        StepVerifier.create(useCase.execute(request))
-                .expectNextMatches(saved ->
-                        saved.getEmail().equals(request.email()) &&
-                                saved.getPassword().equals("encoded-pass") &&
-                                saved.getRoles() != null && saved.getRoles().size() == 1 &&
-                                saved.getRoles().iterator().next().getName() == ERole.ROLE_APPLICANT
-                )
+        // Act & Assert
+        StepVerifier.create(useCase.execute(solicitud))
+                .assertNext(guardado -> {
+                    assertEquals(solicitud.email(), guardado.getEmail());
+                    assertEquals("encoded-pass", guardado.getPassword());
+                    assertNotNull(guardado.getRoles());
+                    assertEquals(1, guardado.getRoles().size());
+                    assertEquals(ERole.ROLE_APPLICANT, guardado.getRoles().iterator().next().getName());
+                })
                 .verifyComplete();
 
-        // verificaciones
-        verify(userRepository).existsByEmail(request.email());
-        verify(userRepository).existsByDocumentIdentification(request.documentIdentification());
+        verify(userRepository).existsByEmail(solicitud.email());
+        verify(userRepository).existsByDocumentIdentification(solicitud.documentIdentification());
         verify(roleRepository).findByName(ERole.ROLE_APPLICANT);
-        verify(passwordEncoderService).encode(request.password());
+        verify(passwordEncoderService).encode(solicitud.password());
         verify(userRepository).save(any(User.class));
 
-        User persisted = userCaptor.getValue();
-        // la contraseña no debe quedar en claro
-        // (validamos al menos que cambió al valor codificado)
-        assert persisted.getPassword().equals("encoded-pass");
+        User persistido = userCaptor.getValue();
+        assertEquals("encoded-pass", persistido.getPassword());
     }
 
     @Test
     @DisplayName("Registra usuario con roles explícitos")
-    void registerWithRoles_ok() {
+    void registraConRoles_ok() {
+        // Arrange
         Set<String> roles = new HashSet<>();
         roles.add("ROLE_ADMIN");
         roles.add("ROLE_CLIENT");
-        RegisterRequest request = buildRequest(roles);
+        RegisterRequest solicitud = construirSolicitud(roles);
 
-        when(userRepository.existsByEmail(request.email())).thenReturn(Mono.just(false));
-        when(userRepository.existsByDocumentIdentification(request.documentIdentification())).thenReturn(Mono.just(false));
+        when(userRepository.existsByEmail(solicitud.email())).thenReturn(Mono.just(false));
+        when(userRepository.existsByDocumentIdentification(solicitud.documentIdentification())).thenReturn(Mono.just(false));
         when(roleRepository.findByName(ERole.ROLE_ADMIN)).thenReturn(Mono.just(Role.builder().name(ERole.ROLE_ADMIN).build()));
         when(roleRepository.findByName(ERole.ROLE_CLIENT)).thenReturn(Mono.just(Role.builder().name(ERole.ROLE_CLIENT).build()));
-        when(passwordEncoderService.encode(request.password())).thenReturn(Mono.just("encoded"));
+        when(passwordEncoderService.encode(solicitud.password())).thenReturn(Mono.just("encoded"));
         when(userRepository.save(any(User.class))).thenAnswer(inv -> Mono.just(inv.getArgument(0)));
 
-        StepVerifier.create(useCase.execute(request))
+        // Act & Assert
+        StepVerifier.create(useCase.execute(solicitud))
                 .assertNext(u -> {
-                    assert u.getRoles() != null && u.getRoles().size() == 2;
-                    assert u.getRolesAsString().contains("ROLE_ADMIN");
-                    assert u.getRolesAsString().contains("ROLE_CLIENT");
+                    assertNotNull(u.getRoles());
+                    assertEquals(2, u.getRoles().size());
+                    assertTrue(u.getRolesAsString().contains("ROLE_ADMIN"));
+                    assertTrue(u.getRolesAsString().contains("ROLE_CLIENT"));
                 })
                 .verifyComplete();
 
@@ -122,14 +128,17 @@ class RegisterUserUseCaseImplTest {
 
     @Test
     @DisplayName("Falla si el correo ya está en uso")
-    void failsWhenEmailExists() {
-        RegisterRequest request = buildRequest(Set.of("ROLE_CLIENT"));
+    void fallaSiCorreoExiste() {
+        // Arrange
+        RegisterRequest solicitud = construirSolicitud(Set.of("ROLE_CLIENT"));
+        when(userRepository.existsByEmail(solicitud.email())).thenReturn(Mono.just(true));
 
-        when(userRepository.existsByEmail(request.email())).thenReturn(Mono.just(true));
-
-        StepVerifier.create(useCase.execute(request))
-                .expectErrorMatches(err -> err instanceof IllegalArgumentException &&
-                        err.getMessage().equals("El correo ya está en uso"))
+        // Act & Assert
+        StepVerifier.create(useCase.execute(solicitud))
+                .expectErrorSatisfies(err -> {
+                    assertTrue(err instanceof DuplicateResourceException);
+                    assertEquals("El correo ya está en uso: " + solicitud.email(), err.getMessage());
+                })
                 .verify();
 
         verify(userRepository, never()).existsByDocumentIdentification(anyString());
@@ -138,15 +147,18 @@ class RegisterUserUseCaseImplTest {
 
     @Test
     @DisplayName("Falla si el documento ya existe")
-    void failsWhenDocumentExists() {
-        RegisterRequest request = buildRequest(Set.of("ROLE_CLIENT"));
+    void fallaSiDocumentoExiste() {
+        // Arrange
+        RegisterRequest solicitud = construirSolicitud(Set.of("ROLE_CLIENT"));
+        when(userRepository.existsByEmail(solicitud.email())).thenReturn(Mono.just(false));
+        when(userRepository.existsByDocumentIdentification(solicitud.documentIdentification())).thenReturn(Mono.just(true));
 
-        when(userRepository.existsByEmail(request.email())).thenReturn(Mono.just(false));
-        when(userRepository.existsByDocumentIdentification(request.documentIdentification())).thenReturn(Mono.just(true));
-
-        StepVerifier.create(useCase.execute(request))
-                .expectErrorMatches(err -> err instanceof IllegalArgumentException &&
-                        err.getMessage().equals("El número de documento ya existe"))
+        // Act & Assert
+        StepVerifier.create(useCase.execute(solicitud))
+                .expectErrorSatisfies(err -> {
+                    assertTrue(err instanceof DuplicateResourceException);
+                    assertEquals("El número de documento ya existe: " + solicitud.documentIdentification(), err.getMessage());
+                })
                 .verify();
 
         verifyNoInteractions(roleRepository, passwordEncoderService);
@@ -154,16 +166,19 @@ class RegisterUserUseCaseImplTest {
 
     @Test
     @DisplayName("Falla si ROLE_APPLICANT no existe cuando no envían roles")
-    void failsWhenDefaultRoleMissing() {
-        RegisterRequest request = buildRequest(null);
-
-        when(userRepository.existsByEmail(request.email())).thenReturn(Mono.just(false));
-        when(userRepository.existsByDocumentIdentification(request.documentIdentification())).thenReturn(Mono.just(false));
+    void fallaSiFaltaRolPorDefecto() {
+        // Arrange
+        RegisterRequest solicitud = construirSolicitud(null);
+        when(userRepository.existsByEmail(solicitud.email())).thenReturn(Mono.just(false));
+        when(userRepository.existsByDocumentIdentification(solicitud.documentIdentification())).thenReturn(Mono.just(false));
         when(roleRepository.findByName(ERole.ROLE_APPLICANT)).thenReturn(Mono.empty());
 
-        StepVerifier.create(useCase.execute(request))
-                .expectErrorMatches(err -> err instanceof IllegalStateException &&
-                        err.getMessage().equals("No se encontró el rol ROLE_APPLICANT"))
+        // Act & Assert
+        StepVerifier.create(useCase.execute(solicitud))
+                .expectErrorSatisfies(err -> {
+                    assertTrue(err instanceof ResourceNotFoundException);
+                    assertEquals("No se encontró el rol ROLE_APPLICANT", err.getMessage());
+                })
                 .verify();
 
         verify(passwordEncoderService, never()).encode(anyString());
@@ -171,21 +186,25 @@ class RegisterUserUseCaseImplTest {
     }
 
     @Test
-    @DisplayName("Falla si algún rol enviado no existe")
-    void failsWhenProvidedRoleNotFound() {
-        RegisterRequest request = buildRequest(Set.of("ROLE_CLIENT", "ROLE_X"));
+    @DisplayName("Falla si algún rol enviado no existe (valor fuera del enum)")
+    void fallaSiRolEnviadoNoExiste() {
+        // Arrange
+        // Usamos un Set que podría iterar en cualquier orden
+        RegisterRequest solicitud = construirSolicitud(Set.of("ROLE_CLIENT", "ROLE_X"));
+        when(userRepository.existsByEmail(solicitud.email())).thenReturn(Mono.just(false));
+        when(userRepository.existsByDocumentIdentification(solicitud.documentIdentification())).thenReturn(Mono.just(false));
+        lenient().when(roleRepository.findByName(ERole.ROLE_CLIENT))
+                .thenReturn(Mono.just(Role.builder().name(ERole.ROLE_CLIENT).build()));
+        // Para ROLE_X, ERole.valueOf(role) lanza IllegalArgumentException antes de ir al repositorio
 
-        when(userRepository.existsByEmail(request.email())).thenReturn(Mono.just(false));
-        when(userRepository.existsByDocumentIdentification(request.documentIdentification())).thenReturn(Mono.just(false));
-        when(roleRepository.findByName(ERole.ROLE_CLIENT)).thenReturn(Mono.just(Role.builder().name(ERole.ROLE_CLIENT).build()));
-        // para ROLE_X, ERole.valueOf lanzará IllegalArgumentException antes de ir al repo
-        // así que no se debe invocar roleRepository.findByName para ese valor
-
-        StepVerifier.create(useCase.execute(request))
+        // Act & Assert
+        StepVerifier.create(useCase.execute(solicitud))
                 .expectError(IllegalArgumentException.class)
                 .verify();
 
-        verify(roleRepository).findByName(ERole.ROLE_CLIENT);
+        // El repositorio puede o no ser llamado dependiendo del orden de iteración del Set.
+        // Relajamos la verificación para evitar falsos negativos en PIT.
+        verify(roleRepository, atMost(1)).findByName(ERole.ROLE_CLIENT);
         verify(passwordEncoderService, never()).encode(anyString());
         verify(userRepository, never()).save(any());
     }

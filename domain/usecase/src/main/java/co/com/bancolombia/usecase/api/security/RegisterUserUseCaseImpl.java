@@ -5,7 +5,6 @@ import co.com.bancolombia.model.entities.Role;
 import co.com.bancolombia.model.entities.User;
 import co.com.bancolombia.model.enums.ERole;
 import co.com.bancolombia.model.exceptions.DuplicateResourceException;
-import co.com.bancolombia.model.exceptions.InvalidRoleException;
 import co.com.bancolombia.model.exceptions.ResourceNotFoundException;
 import co.com.bancolombia.model.gateways.PasswordEncoderService;
 import co.com.bancolombia.model.gateways.RoleRepository;
