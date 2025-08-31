@@ -8,7 +8,6 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import reactor.core.publisher.Mono;
 
-import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
@@ -42,7 +41,7 @@ public class SecurityUserDetails implements UserDetails {
                     user.getFirstName(),
                     user.getLastName(),
                     user.getBirthDate().toString(),
-                    user.getDirection(),
+                    user.getAddress(),
                     user.getTelephoneNumber(),
                     user.getEmail(),
                     user.getPassword(),
