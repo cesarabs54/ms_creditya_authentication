@@ -11,6 +11,7 @@ import java.util.UUID;
 @Setter
 @Builder
 @AllArgsConstructor
+@NoArgsConstructor
 public class User {
 
     private UUID userId;

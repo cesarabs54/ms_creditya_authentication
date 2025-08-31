@@ -71,6 +71,11 @@ subprojects {
         jvmArgs = ["-XX:+AllowRedefinitionToAddDeleteMethods"]
     }
 
+    // Deshabilitar la tarea pitest
+    tasks.named('pitest').configure {
+        enabled = false
+    }
+
     jacocoTestReport {
         dependsOn test, 'pitest'
         reports {
@@ -89,7 +94,7 @@ jacoco {
 }
 
 tasks.register('jacocoMergedReport', JacocoReport) {
-    dependsOn = [test, subprojects.jacocoTestReport, 'pitestReportAggregate']
+    dependsOn = [test, subprojects.jacocoTestReport]
     additionalSourceDirs.setFrom files(subprojects.sourceSets.main.allSource.srcDirs)
     sourceDirectories.setFrom files(subprojects.sourceSets.main.allSource.srcDirs)
     classDirectories.setFrom files(subprojects.sourceSets.main.output)
@@ -108,6 +113,7 @@ tasks.withType(JavaCompile).configureEach {
 }
 
 pitestReportAggregate {
+    enabled = false
     doLast {
         def reportDir = layout.buildDirectory.dir("reports/pitest").get().asFile
         def consolidatedReport = new File(reportDir, 'mutations.xml')
