@@ -4,6 +4,9 @@ import co.com.bancolombia.model.dtos.RegisterRequest;
 import co.com.bancolombia.model.entities.Role;
 import co.com.bancolombia.model.entities.User;
 import co.com.bancolombia.model.enums.ERole;
+import co.com.bancolombia.model.exceptions.DuplicateResourceException;
+import co.com.bancolombia.model.exceptions.InvalidRoleException;
+import co.com.bancolombia.model.exceptions.ResourceNotFoundException;
 import co.com.bancolombia.model.gateways.PasswordEncoderService;
 import co.com.bancolombia.model.gateways.RoleRepository;
 import co.com.bancolombia.model.gateways.UserRepository;
@@ -31,13 +34,12 @@ public class RegisterUserUseCaseImpl implements RegisterUserUseCase {
         return userRepository.existsByEmail(request.email())
                 .flatMap(existsEmail -> {
                     if (Boolean.TRUE.equals(existsEmail)) {
-                        return Mono.error(new IllegalArgumentException("El correo ya está en uso"));
+                        return Mono.error(DuplicateResourceException.emailInUse(request.email()));
                     }
                     return userRepository.existsByDocumentIdentification(request.documentIdentification());
                 }).flatMap(existsDocumentIdentification -> {
                     if (Boolean.TRUE.equals(existsDocumentIdentification)) {
-                        return Mono.error(
-                                new IllegalArgumentException("El número de documento ya existe"));
+                        return Mono.error(DuplicateResourceException.documentInUse(request.documentIdentification()));
                     }
 
                     Set<String> strRoles = request.roles();
@@ -45,16 +47,14 @@ public class RegisterUserUseCaseImpl implements RegisterUserUseCase {
 
                     if (strRoles == null || strRoles.isEmpty()) {
                         rolesFlux = roleRepository.findByName(ERole.ROLE_APPLICANT)
-                                .switchIfEmpty(Mono.error(new IllegalStateException(
-                                        "No se encontró el rol ROLE_APPLICANT")))
+                                .switchIfEmpty(Mono.error(ResourceNotFoundException.defaultRoleMissing("ROLE_APPLICANT")))
                                 .flux();
                     } else {
                         rolesFlux = Flux.fromIterable(strRoles)
                                 .flatMap(role -> {
                                     ERole eRole = ERole.valueOf(role);
                                     return roleRepository.findByName(eRole)
-                                            .switchIfEmpty(Mono.error(new IllegalStateException(
-                                                    "Rol no encontrado: " + role)));
+                                            .switchIfEmpty(Mono.error(ResourceNotFoundException.roleNotFound(role)));
                                 });
                     }
 

@@ -13,7 +13,7 @@ public interface UserMapper {
     @Mapping(source = "firstName", target = "firstName")
     @Mapping(source = "lastName", target = "lastName")
     @Mapping(source = "birthDate", target = "birthDate")
-    @Mapping(source = "direction", target = "direction")
+    @Mapping(source = "address", target = "address")
     @Mapping(source = "telephoneNumber", target = "telephoneNumber")
     @Mapping(source = "email", target = "email")
     @Mapping(source = "password", target = "password")
