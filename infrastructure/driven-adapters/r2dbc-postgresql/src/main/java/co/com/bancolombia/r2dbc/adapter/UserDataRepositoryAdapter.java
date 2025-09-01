@@ -4,7 +4,9 @@ import co.com.bancolombia.model.entities.Role;
 import co.com.bancolombia.model.entities.User;
 import co.com.bancolombia.model.gateways.UserRepository;
 import co.com.bancolombia.r2dbc.entities.UserRoleData;
+import co.com.bancolombia.r2dbc.mappers.RoleMapper;
 import co.com.bancolombia.r2dbc.mappers.UserMapper;
+import co.com.bancolombia.r2dbc.repositories.RoleDataRepository;
 import co.com.bancolombia.r2dbc.repositories.UserDataRepository;
 import co.com.bancolombia.r2dbc.repositories.UserRoleDataRepository;
 import co.com.bancolombia.r2dbc.util.IdGeneratorUtil;
@@ -14,7 +16,10 @@ import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.Collections;
 import java.util.Set;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Repository
@@ -24,10 +29,14 @@ public class UserDataRepositoryAdapter implements UserRepository {
     private final UserDataRepository repository;
     private final UserRoleDataRepository userRoleDataRepository;
     private final UserMapper mapper;
+    private final RoleDataRepository roleDataRepository;
+    private final RoleMapper roleMapper;
 
     @Override
     public Mono<User> findByEmail(String email) {
-        return repository.findByEmail(email).map(mapper::toModel);
+        return repository.findByEmail(email)
+                .map(mapper::toModel)
+                .flatMap(this::enrichWithRoles);
     }
 
     @Override
@@ -68,9 +77,31 @@ public class UserDataRepositoryAdapter implements UserRepository {
                                 })
                                 .then(Mono.just(savedUserData))
                 .map(mapper::toModel)
+                                .flatMap(this::enrichWithRoles)
                 .doOnSuccess(result -> log.debug("Usuario con roles guardado exitosamente: {}", result))
                 .doOnError(error -> log.error("Error finalizando guardado de usuario con roles: ", error))
                 );
+    }
+
+    private Mono<User> enrichWithRoles(User user) {
+        UUID userId = user.getUserId();
+        return userRoleDataRepository.findByUserId(userId)
+                .map(UserRoleData::getRoleId)
+                .collectList()
+                .flatMapMany(roleIds -> {
+                    if (roleIds.isEmpty()) {
+                        return Flux.empty();
+                    }
+                    // Opción B (si implementas findAllByRoleIdIn):
+                    return roleDataRepository.findAllByRoleIdIn(roleIds);
+                })
+                .map(roleMapper::toModel)
+                .collect(Collectors.toSet())
+                .defaultIfEmpty(Collections.emptySet())
+                .map(roles -> {
+                    user.setRoles(roles);
+                    return user;
+                });
     }
 
     @Override
@@ -81,6 +112,13 @@ public class UserDataRepositoryAdapter implements UserRepository {
     @Override
     public Mono<Boolean> existsByEmail(String email) {
         return repository.existsByEmail(email);
+    }
+
+    @Override
+    public Flux<User> findAll() {
+        return repository.findAll()
+                .map(mapper::toModel)
+                .flatMap(this::enrichWithRoles);
     }
 
 }

@@ -10,7 +10,6 @@ import co.com.bancolombia.api.router.RouterRest;
 import co.com.bancolombia.api.util.RequestValidator;
 import co.com.bancolombia.model.entities.User;
 import co.com.bancolombia.usecase.RegisterUserUseCase;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;

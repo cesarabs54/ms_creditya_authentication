@@ -17,17 +17,23 @@ spring:
         jwt:
           issuer-uri: "https://idp.example.com/issuer"
           client-id: "myclientid"
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
 management:
   endpoints:
     web:
       exposure:
-        include: "health,prometheus"
+        include: beans, health, info, prometheus
   endpoint:
     health:
       probes:
         enabled: true
 cors:
-  allowed-origins: "http://localhost:4200,http://localhost:8080"
+  allowed-origins: "http://localhost:4200,http://localhost:8082"
 adapters:
   r2dbc:
     host: localhost
@@ -38,11 +44,17 @@ adapters:
     schema: public
 logging:
   level:
-    org.springframework.data.r2dbc: "DEBUG"
-    org.springframework.r2dbc: "DEBUG"
-    org.springframework.security: "DEBUG"
-    org.springframework.web: "DEBUG"
-    reactor.netty.http.server.HttpServerOperations: "DEBUG"
+    org.springframework: "DEBUG" # Mantener para ver mensajes generales de Spring
+    org.springframework.context.annotation: "TRACE" # Mantener para depuración detallada de beans
+    org.springframework.beans: "DEBUG" # Agregar para información específica sobre la creación de beans
+    org.springframework.data.r2dbc: "INFO" # Reducir a INFO si no hay problemas con la base de datos
+    org.springframework.r2dbc: "INFO" # Reducir a INFO si no hay problemas con la base de datos
+    org.springframework.security: "INFO" # Reducir a INFO si no hay problemas de seguridad
+    org.springframework.web: "INFO" # Reducir a INFO si no hay problemas con las rutas
+    reactor.netty.http.server.HttpServerOperations: "INFO" # Reducir a INFO para reducir ruido
+    co.com.bancolombia: "DEBUG" # Agregar para ver logs de tus propias clases
+    org.springframework.beans.factory: DEBUG
+
 bezkoder:
   app:
     jwtSecret: "TuClaveSuperSecreta1234567890abcdef"
