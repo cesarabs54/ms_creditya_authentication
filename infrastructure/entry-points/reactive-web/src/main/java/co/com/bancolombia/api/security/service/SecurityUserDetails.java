@@ -22,7 +22,7 @@ public class SecurityUserDetails implements UserDetails {
     private final String firstName;
     private final String lastName;
     private final String birthDate;
-    private final String direction;
+    private final String address;
     private final String telephoneNumber;
     private final String email;
     private final String password;

@@ -8,7 +8,7 @@ public record RegisterRequest(
         String firstName,
         String lastName,
         LocalDate birthDate,
-        String direction,
+        String address,
         String telephoneNumber,
         String email,
         String password,

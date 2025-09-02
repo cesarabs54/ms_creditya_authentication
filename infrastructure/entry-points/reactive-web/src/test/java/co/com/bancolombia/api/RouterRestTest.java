@@ -53,7 +53,7 @@ class RouterRestTest {
                 "Cesar",                       // firstName
                 "Alfonso",                     // lastName
                 "1980-11-10",                  // birthDate
-                "Calle 123 #45-67",            // direction
+                "Calle 123 #45-67",            // address
                 "3001234567",                  // telephoneNumber
                 "cesar@correo.com",            // email
                 "password123",                 // password

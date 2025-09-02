@@ -31,7 +31,7 @@ public record SignUpRequest(
 
         @NotBlank
         @Schema(description = "Dirección del usuario", example = "Calle 123 #45-67")
-        String direction,
+        String address,
 
         @NotBlank
         @Schema(description = "Número de teléfono", example = "3001234567")

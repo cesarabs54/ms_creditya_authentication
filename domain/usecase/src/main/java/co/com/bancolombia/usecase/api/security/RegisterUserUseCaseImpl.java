@@ -67,7 +67,7 @@ public class RegisterUserUseCaseImpl implements RegisterUserUseCase {
                                                         request.firstName(),
                                                         request.lastName(),
                                                         request.birthDate(),
-                                                        request.direction(),
+                                                        request.address(),
                                                         request.telephoneNumber(),
                                                         request.email(),
                                                         encodedPassword,
