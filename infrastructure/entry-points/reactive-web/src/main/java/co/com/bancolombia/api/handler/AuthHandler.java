@@ -3,7 +3,7 @@ package co.com.bancolombia.api.handler;
 import co.com.bancolombia.api.dto.requests.SignUpRequest;
 import co.com.bancolombia.api.dto.responses.MessageResponse;
 import co.com.bancolombia.api.util.RequestValidator;
-import co.com.bancolombia.model.dtos.RegisterRequest;
+import co.com.bancolombia.model.dto.RegisterRequest;
 import co.com.bancolombia.usecase.RegisterUserUseCase;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;

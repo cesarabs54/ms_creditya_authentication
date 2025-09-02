@@ -1,6 +1,6 @@
 package co.com.bancolombia.usecase.api.security;
 
-import co.com.bancolombia.model.dtos.RegisterRequest;
+import co.com.bancolombia.model.dto.RegisterRequest;
 import co.com.bancolombia.model.entities.Role;
 import co.com.bancolombia.model.entities.User;
 import co.com.bancolombia.model.enums.ERole;

@@ -5,7 +5,7 @@ import lombok.Getter;
 @Getter
 public abstract class DomainException extends RuntimeException {
 
-    private final String code; // opcional: código lógico del dominio
+    private final String code;
 
     protected DomainException(String message) {
         super(message);

@@ -1,7 +1,8 @@
 package co.com.bancolombia.api.handler;
 
 import co.com.bancolombia.api.dto.responses.UserResponse;
-import co.com.bancolombia.usecase.GetAllUsersUseCase;
+import co.com.bancolombia.model.entities.User;
+import co.com.bancolombia.usecase.GetAllUseCase;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -15,10 +16,10 @@ import reactor.core.publisher.Mono;
 @RequiredArgsConstructor
 public class UserHandler {
 
-    private final GetAllUsersUseCase getAllUsersUseCase;
+    private final GetAllUseCase<User> getAllUseCase;
 
     public Mono<ServerResponse> listUsers(ServerRequest request) {
-        Flux<UserResponse> users = getAllUsersUseCase.getAll()
+        Flux<UserResponse> users = getAllUseCase.getAll()
                 .map(user -> new UserResponse(
                         user.getUserId(),
                         user.getDocumentIdentification(),
@@ -29,7 +30,7 @@ public class UserHandler {
                         user.getTelephoneNumber(),
                         user.getEmail(),
                         user.getBaseSalary(),
-                        user.getRoles().stream().map(r -> r.getName().name()).toList()
+                        user.getRolesAsString()
                 ));
 
         return ServerResponse.ok()
