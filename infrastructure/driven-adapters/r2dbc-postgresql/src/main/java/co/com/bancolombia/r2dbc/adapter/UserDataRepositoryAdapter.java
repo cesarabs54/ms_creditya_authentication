@@ -40,6 +40,13 @@ public class UserDataRepositoryAdapter implements UserRepository {
     }
 
     @Override
+    public Mono<User> findByDocumentIdentification(String document) {
+        return repository.findByDocumentIdentification(document)
+                .map(mapper::toModel)
+                .flatMap(this::enrichWithRoles);
+    }
+
+    @Override
     public Mono<User> save(User user) {
         log.debug("Iniciando guardado de usuario: {}", user.getFirstName());
 

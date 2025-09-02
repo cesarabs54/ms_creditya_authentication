@@ -8,7 +8,7 @@ import reactor.core.publisher.Flux;
 import java.util.UUID;
 
 @Repository
-public interface UserRoleDataRepository extends R2dbcRepository<UserRoleData, Integer> {
+public interface UserRoleDataRepository extends R2dbcRepository<UserRoleData, UUID> {
 
     Flux<UserRoleData> findByUserId(UUID userId);
 

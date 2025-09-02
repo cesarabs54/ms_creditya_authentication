@@ -1,4 +1,4 @@
-package co.com.bancolombia.model.dto;
+package co.com.bancolombia.model.dtos;
 
 import java.time.LocalDate;
 import java.util.Set;

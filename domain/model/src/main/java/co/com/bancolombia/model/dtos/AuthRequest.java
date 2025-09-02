@@ -1,4 +1,4 @@
-package co.com.bancolombia.model.dto;
+package co.com.bancolombia.model.dtos;
 
 public record AuthRequest(String email, String password) {
 }

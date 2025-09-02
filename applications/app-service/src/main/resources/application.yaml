@@ -55,10 +55,8 @@ logging:
     co.com.bancolombia: "DEBUG" # Agregar para ver logs de tus propias clases
     org.springframework.beans.factory: DEBUG
 
-bezkoder:
-  app:
-    jwtSecret: "TuClaveSuperSecreta1234567890abcdef"
-    jwtExpirationMs: 3600000
-    jwtRefreshExpirationMs: 604800000
-jwt:
-  json-exp-roles: "/roles"
+security:
+  jwt:
+    jwtSecret: TuClaveSuperSecreta1234567890abcdef
+    jwtExpirationMs: 3600000        # 15 minutes
+    jwtRefreshExpirationMs: 604800000   # 14 days

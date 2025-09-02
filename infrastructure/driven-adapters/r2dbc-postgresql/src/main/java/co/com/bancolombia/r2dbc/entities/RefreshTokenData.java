@@ -1,30 +1,30 @@
 package co.com.bancolombia.r2dbc.entities;
 
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Transient;
 import org.springframework.data.domain.Persistable;
-import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
+import java.time.Instant;
 import java.util.UUID;
 
-@Table("roles")
+@Table(name = "refreshtoken")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class RoleData implements Persistable<UUID> {
+public class RefreshTokenData implements Persistable<UUID> {
 
     @Id
-    @Column("role_id")
-    private UUID roleId;
+    private UUID refreshTokenId;
 
-    @Enumerated(EnumType.STRING)
-    private ERoleData name;
+    private UUID userId;
+
+    private String token;
+
+    private Instant expiryDate;
 
     @Transient
     @SuppressWarnings("all")
@@ -37,7 +37,11 @@ public class RoleData implements Persistable<UUID> {
 
     @Override
     public UUID getId() {
-        return roleId;
+        return refreshTokenId;
     }
 
+    public void setAsNotNew() {
+        this.isNew = false;
+    }
 }
+

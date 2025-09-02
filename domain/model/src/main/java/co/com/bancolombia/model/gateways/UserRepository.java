@@ -8,6 +8,8 @@ public interface UserRepository {
 
     Mono<User> findByEmail(String email);
 
+    Mono<User> findByDocumentIdentification(String document);
+
     Mono<User> save(User user);
 
     Mono<Boolean> existsByDocumentIdentification(String identification);

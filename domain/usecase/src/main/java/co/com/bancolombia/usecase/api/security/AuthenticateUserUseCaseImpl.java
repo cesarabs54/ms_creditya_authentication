@@ -1,7 +1,8 @@
 package co.com.bancolombia.usecase.api.security;
 
-import co.com.bancolombia.model.dto.AuthRequest;
-import co.com.bancolombia.model.dto.AuthResponse;
+import co.com.bancolombia.model.dtos.AuthRequest;
+import co.com.bancolombia.model.dtos.AuthResponse;
+import co.com.bancolombia.model.exceptions.AuthenticationException;
 import co.com.bancolombia.model.gateways.JwtGateway;
 import co.com.bancolombia.model.gateways.PasswordEncoderService;
 import co.com.bancolombia.model.gateways.RoleRepository;
@@ -23,15 +24,12 @@ public class AuthenticateUserUseCaseImpl implements AuthenticateUserUseCase {
     @Override
     public Mono<AuthResponse> execute(AuthRequest request) {
         return userRepository.findByEmail(request.email())
-                .switchIfEmpty(Mono.error(
-                        new RuntimeException("Error: Email not found - " + request.email()))
-                )
+                .switchIfEmpty(Mono.error(AuthenticationException.emailNotFound()))
                 .flatMap(user -> passwordEncoderService.matches(request.password(),
                                 user.getPassword())
                         .flatMap(matches -> {
                             if (Boolean.FALSE.equals(matches)) {
-                                return Mono.error(
-                                        new RuntimeException("Error: Invalid credentials"));
+                                return Mono.error(AuthenticationException.invalidCredentials());
                             }
 
                             return roleRepository.findByUserId(user.getUserId())

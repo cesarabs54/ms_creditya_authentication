@@ -93,6 +93,7 @@ public class RouterRest {
     public RouterFunction<ServerResponse> authRoutes(AuthHandler handler, UserHandler userHandler) {
         return route()
                 .POST("/auth/signup", handler::registerUser)
+                .POST("/auth/signing", handler::authenticateUser)
                 .GET("/users/users", userHandler::listUsers)
                 .build();
     }
