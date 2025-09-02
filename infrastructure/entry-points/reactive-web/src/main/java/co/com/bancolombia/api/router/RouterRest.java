@@ -68,6 +68,49 @@ public class RouterRest {
                     )
             ),
             @RouterOperation(
+                    path = "/auth/signing",
+                    beanClass = AuthHandler.class,
+                    beanMethod = "authenticateUser",
+                    operation = @Operation(
+                            summary = "Autenticar usuario",
+                            description = "Autentica un usuario y retorna un token JWT",
+                            tags = {"Autenticación"},
+                            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                                    description = "Credenciales de inicio de sesión",
+                                    required = true,
+                                    content = @Content(
+                                            mediaType = "application/json",
+                                            schema = @Schema(implementation = SignUpRequest.class)
+                                    )
+                            ),
+                            responses = {
+                                    @ApiResponse(
+                                            responseCode = "200",
+                                            description = "Autenticación exitosa, retorna token JWT",
+                                            content = @Content(
+                                                    mediaType = "application/json",
+                                                    schema = @Schema(implementation = MessageResponse.class)
+                                            )
+                                    ),
+                                    @ApiResponse(
+                                            responseCode = "400",
+                                            description = "Datos inválidos",
+                                            content = @Content(mediaType = "application/json")
+                                    ),
+                                    @ApiResponse(
+                                            responseCode = "401",
+                                            description = "Credenciales incorrectas",
+                                            content = @Content(mediaType = "application/json")
+                                    ),
+                                    @ApiResponse(
+                                            responseCode = "500",
+                                            description = "Error interno",
+                                            content = @Content(mediaType = "application/json")
+                                    )
+                            }
+                    )
+            ),
+            @RouterOperation(
                     path = "/users/users",
                     beanClass = UserHandler.class,
                     beanMethod = "listUsers",
