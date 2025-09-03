@@ -1,6 +1,7 @@
 package co.com.bancolombia.api.handler;
 
 import co.com.bancolombia.api.dto.responses.ErrorMessage;
+import co.com.bancolombia.model.exceptions.*;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.web.WebProperties;
@@ -23,11 +24,6 @@ import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
 import java.util.stream.Collectors;
-
-import co.com.bancolombia.model.exceptions.DuplicateResourceException;
-import co.com.bancolombia.model.exceptions.InvalidRoleException;
-import co.com.bancolombia.model.exceptions.ResourceNotFoundException;
-import co.com.bancolombia.model.exceptions.DomainException;
 
 @Slf4j
 @Component
@@ -91,6 +87,11 @@ public class GlobalErrorHandler extends AbstractErrorWebExceptionHandler {
                 status = (HttpStatus) rse.getStatusCode();
                 message = rse.getReason() != null ? rse.getReason() : "Error de estado HTTP";
             }
+            // 400 - Argumento inválido (programación/validación básica)
+            case IllegalArgumentException iae -> {
+                status = HttpStatus.BAD_REQUEST;
+                message = iae.getMessage() != null ? iae.getMessage() : "Argumento inválido";
+            }
             // 409 - Recurso duplicado (conflicto), p.ej. usuario ya existente
             case DuplicateResourceException dre -> {
                 status = HttpStatus.CONFLICT;
@@ -106,15 +107,15 @@ public class GlobalErrorHandler extends AbstractErrorWebExceptionHandler {
                 status = HttpStatus.NOT_FOUND;
                 message = rnfe.getMessage();
             }
+            // 401 - Errores de autenticación
+            case AuthenticationException ae -> {
+                status = HttpStatus.UNAUTHORIZED;
+                message = ae.getMessage();
+            }
             // 400 - Excepciones de dominio no mapeadas específicamente
             case DomainException de -> {
                 status = HttpStatus.BAD_REQUEST;
                 message = de.getMessage();
-            }
-            // 400 - Argumento inválido (programación/validación básica)
-            case IllegalArgumentException iae -> {
-                status = HttpStatus.BAD_REQUEST;
-                message = iae.getMessage() != null ? iae.getMessage() : "Argumento inválido";
             }
             // 500 - Cualquier otro error no controlado
             default -> {

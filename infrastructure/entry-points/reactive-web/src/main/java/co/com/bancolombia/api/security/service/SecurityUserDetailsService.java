@@ -12,11 +12,11 @@ import reactor.core.publisher.Mono;
 @RequiredArgsConstructor
 public class SecurityUserDetailsService implements ReactiveUserDetailsService {
 
-    private final GetUserByDocumentIdentificationUseCase getUserByUsernameUseCase;
+    private final GetUserByDocumentIdentificationUseCase getUserByDocumentIdentificationUseCase;
 
     @Override
     public Mono<UserDetails> findByUsername(String username) {
-        return getUserByUsernameUseCase.execute(username)
+        return getUserByDocumentIdentificationUseCase.execute(username)
                 .switchIfEmpty(
                         Mono.error(new UsernameNotFoundException("User not found: " + username)))
                 .flatMap(SecurityUserDetails::build);

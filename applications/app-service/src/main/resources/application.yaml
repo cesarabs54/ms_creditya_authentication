@@ -49,7 +49,7 @@ logging:
     org.springframework.beans: "DEBUG" # Agregar para información específica sobre la creación de beans
     org.springframework.data.r2dbc: "INFO" # Reducir a INFO si no hay problemas con la base de datos
     org.springframework.r2dbc: "INFO" # Reducir a INFO si no hay problemas con la base de datos
-    org.springframework.security: "INFO" # Reducir a INFO si no hay problemas de seguridad
+    org.springframework.security: DEBUG # Reducir a INFO si no hay problemas de seguridad
     org.springframework.web: "INFO" # Reducir a INFO si no hay problemas con las rutas
     reactor.netty.http.server.HttpServerOperations: "INFO" # Reducir a INFO para reducir ruido
     co.com.bancolombia: "DEBUG" # Agregar para ver logs de tus propias clases
