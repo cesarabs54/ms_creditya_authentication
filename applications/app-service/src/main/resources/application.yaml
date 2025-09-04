@@ -38,7 +38,7 @@ adapters:
   r2dbc:
     host: localhost
     port: 5432
-    database: db_creditya
+    database: db_creditya_authentication
     username: postgres
     password: postgres
     schema: public
